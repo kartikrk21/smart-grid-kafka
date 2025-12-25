@@ -8,9 +8,16 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode("utf-8")
 )
 
-nodes = ["A", "B", "C", "D"]
-fault_types = ["overvoltage", "overcurrent"]
+with open("config/grid_topology.json") as f:
+    topology = json.load(f)
 
+nodes = list(topology.keys())
+
+fault_types = [
+    "overvoltage",
+    "overload",
+    "line_fault"
+]
 print("Fault injector started...")
 
 while True:
