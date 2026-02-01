@@ -1,28 +1,22 @@
 import json
+import random
 from collections import deque
-
-import networkx as nx
 from kafka import KafkaConsumer, KafkaProducer
 
 # ================= CONFIG =================
 KAFKA_BOOTSTRAP = "localhost:29092"   # MUST match docker-compose
 MAX_DEPTH = 3                         # BFS depth
 DEPTH_DECAY = 0.7                     # decay per hop
-CENTRALITY_ALPHA = 0.6                # influence of centrality
 # =========================================
 
 # -------- Load Grid Topology --------
 with open("grid_topology.json") as f:
     TOPOLOGY = json.load(f)
 
-# -------- Build Graph --------
-G = nx.Graph()
-for u, nbrs in TOPOLOGY.items():
-    for v, w in nbrs.items():
-        G.add_edge(u, v, weight=w)
-
-# Degree centrality (stable, explainable)
-centrality = nx.degree_centrality(G)
+# Node sensitivity (heterogeneity)
+nnode_sensitivity = {
+    node: random.uniform(0.8, 1.2) for node in TOPOLOGY
+}
 
 # -------- Kafka Consumer / Producer --------
 consumer = KafkaConsumer(
@@ -38,7 +32,7 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode("utf-8")
 )
 
-print("[Centrality Propagation] Started")
+print("[Linear Propagation] Started")
 
 # -------- BFS Stress Propagation --------
 for msg in consumer:
@@ -66,12 +60,10 @@ for msg in consumer:
 
             visited.add(neighbor)
 
-            centrality_factor = 1 + CENTRALITY_ALPHA * centrality.get(neighbor, 0)
-
             propagated = (
                 stress
                 * weight
-                * centrality_factor
+                * node_sensitivity[neighbor]
                 * (DEPTH_DECAY ** depth)
             )
 
@@ -85,6 +77,6 @@ for msg in consumer:
                 "load_pct": round(70 + propagated * 40, 1)
             }
 
-            producer.send("propagated_stress_centrality", output)
+            producer.send("propagated_stress_linear", output)
             queue.append((neighbor, propagated, depth + 1))
 

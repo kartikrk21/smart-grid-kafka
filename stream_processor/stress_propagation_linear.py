@@ -22,7 +22,7 @@ node_sensitivity = {
 consumer = KafkaConsumer(
     "stress_events",
     bootstrap_servers=KAFKA_BOOTSTRAP,
-    auto_offset_reset="latest",
+    auto_offset_reset="earliest",
     enable_auto_commit=True,
     value_deserializer=lambda v: json.loads(v.decode("utf-8"))
 )

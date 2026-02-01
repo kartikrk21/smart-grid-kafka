@@ -11,7 +11,7 @@ COOLDOWN_EVENTS = 12   # MUCH STRONGER cooldown
 consumer = KafkaConsumer(
     "propagated_stress_linear",
     bootstrap_servers=KAFKA_BOOTSTRAP,
-    auto_offset_reset="latest",
+    auto_offset_reset="earliest",
     value_deserializer=lambda v: json.loads(v.decode("utf-8"))
 )
 

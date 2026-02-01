@@ -4,7 +4,7 @@ from kafka import KafkaConsumer, KafkaProducer
 
 KAFKA_BOOTSTRAP = "localhost:29092"
 
-LOAD_THRESHOLD = 0.72
+LOAD_THRESHOLD = 0.4
 MAX_LOAD = 80000
 
 SOURCE_NODES = {
@@ -16,7 +16,7 @@ SOURCE_NODES = {
 consumer = KafkaConsumer(
     "grid_measurements",
     bootstrap_servers=KAFKA_BOOTSTRAP,
-    auto_offset_reset="latest",
+    auto_offset_reset="earliest",
     value_deserializer=lambda v: json.loads(v.decode("utf-8"))
 )
 
